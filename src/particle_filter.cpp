@@ -35,11 +35,11 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	default_random_engine gen;
 	
 	for (int i=0; i < size(num_particles); i++){
-		Particle.id = 0;
-		Particle.Weight = 1;
-		Particle.x = dist_x(gen);
-		Particle.y = dist_y(gen);
-		Particle.theta = dist_psi(gen);
+		Particle[i].id = i;
+		Particle[i].Weight = 1;
+		Particle[i].x = dist_x(gen);
+		Particle[i].y = dist_y(gen);
+		Particle[i].theta = dist_psi(gen);
 	}
 	
 	is_initialized = true;
@@ -52,8 +52,15 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 	
+	normal_distribution<double> dist_v(velocity, std_pos[0]);
+	normal_distribution<double> dist_yr(yaw_rate, std_pos[1]);
+	default_random_engine gen;
 	
-
+	for (int i=0; i < size(num_particles); i++){
+		Particle[i].x += dist_v(gen)/dist_yr(gen)*(sin(Particle.theta + dist_yr(gen)*delta_t)-sin(Particle.theta));
+		Particle[i].y += dist_v(gen)/dist_yr(gen)*(cos(Particle.theta) - cos(Particle.theta + dist_yr(gen)*delta_t));
+		Particle[i].theta += dist_yr(gen)*detlta_t;
+	}
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
@@ -61,7 +68,9 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	//   observed measurement to this particular landmark.
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
 	//   implement this method and use it as a helper during the updateWeights phase.
-
+	for (int i=0; i < size(num_particles); i++){
+		dist(predicted[i].x, predicted[i].y, observations[i].x, observations[i].y)
+	}
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
