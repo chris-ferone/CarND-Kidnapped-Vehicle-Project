@@ -35,13 +35,18 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	normal_distribution<double> dist_psi(theta, std[2]);
 	default_random_engine gen;
 	
+	cout << "before  initialization for loop" << endl;
+	
 	for (int i=0; i < num_particles; i++){
+		particles.push_back(Particle());
 		particles[i].id = i;
 		particles[i].weight = 1;
 		particles[i].x = dist_x(gen);
 		particles[i].y = dist_y(gen);
 		particles[i].theta = dist_psi(gen);
 	}
+	
+	cout << "after initialization for loop" << endl;
 	
 	is_initialized = true;
 
@@ -109,13 +114,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//convert ‘std::vector<Map::single_landmark_s>’ to ‘std::vector<LandmarkObs>’
 	
 	std::vector<LandmarkObs> landmarkData;
-	
+	cout << "data type conversion begin" << endl;
 	for (int i=0; i < map_landmarks.landmark_list.size(); i++){
+			landmarkData.push_back(LandmarkObs());
 			landmarkData[i].id = map_landmarks.landmark_list[i].id_i;
 			landmarkData[i].x = map_landmarks.landmark_list[i].x_f;
 			landmarkData[i].y = map_landmarks.landmark_list[i].y_f;
 	}
-
+	cout << "data type conversion end, data association begin" << endl;
 	
 	ParticleFilter::dataAssociation(landmarkData, observations);
 	
