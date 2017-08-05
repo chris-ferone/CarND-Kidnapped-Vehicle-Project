@@ -84,9 +84,9 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 			double distance = dist(predicted[i].x, predicted[i].y, observations[j].x, observations[j].y);  
 			if (distance < min_distance) {
 				min_distance = distance;
-				//particles[i].associations = predicted[j].id;
-				//particles[i].sense_x = observations[j].x; //landmark
-				//particles[i].sense_y = observations[j].y;
+				particles[i].associations[0] = predicted[j].id;
+				particles[i].sense_x[0] = observations[j].x; //landmark
+				particles[i].sense_y[0] = observations[j].y;
 			}
 		}	
 		
@@ -106,16 +106,24 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
 	
+	//convert ‘std::vector<Map::single_landmark_s>’ to ‘std::vector<LandmarkObs>’
+	
+	std::vector<LandmarkObs> landmarkData;
+	
+	for (int i=0; i < map_landmarks.landmark_list.size(); i++){
+			landmarkData[i].id = map_landmarks.landmark_list[i].id_i;
+			landmarkData[i].x = map_landmarks.landmark_list[i].x_f;
+			landmarkData[i].y = map_landmarks.landmark_list[i].y_f;
+	}
 
 	
-	
-	//ParticleFilter::dataAssociation(map_landmarks, observations);
+	ParticleFilter::dataAssociation(landmarkData, observations);
 	
 	for (int i=0; i < num_particles; i++) { //loop through all the particles
 		
 		for (int j=0; j < particles[i].associations.size(); j++) { //each particle is associated with a number of observations, so loop through all observations
 		// these associated observations are converted to map coordinates (e.g. GPS)
-			//particles[i].weight = 1/(2*M_PI*std_landmark[0]*std_landmark[1])*exp(-(pow((particles[i].sense_x - map_landmarks[particles[i].id].x_f ),2)/(2*pow(std_landmark[0],2)) + pow(( particles[i].sense_y - map_landmarks[particles[i].id].y_f ),2 )/(2*pow(std_landmark[1],2))   ));
+			particles[i].weight = 1 / (2*M_PI*std_landmark[0]*std_landmark[1]) * exp(-(pow((particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].id].x_f ),2)/(2*pow(std_landmark[0],2)) + pow(( particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].id].y_f ),2 )/(2*pow(std_landmark[1],2))   ));
 		}
 		
 		
@@ -136,8 +144,19 @@ void ParticleFilter::resample() {
 	std::vector<Particle> new_particles;
 	int index = rand() % N;
 	double beta = 0.0;
-	//double mw = particles[max_element(std::begin(particles), std::end(particles))].weight ;
-	double mw = particles[3].weight ;
+	
+	// find largest weight
+	decltype(particles)::iterator ParticleIterator;
+
+	ParticleIterator = max_element(begin(particles), end(particles),
+		[] (Particle const& p1, Particle  const& p2)
+	    {
+	        return p1.weight < p2.weight;
+	    });
+	
+	double mw = particles[std::distance(begin(particles), ParticleIterator)].weight;
+	
+	//double mw = particles[3].weight ;
 	for (int i=0; i < N; i++){
 		beta = beta + rand() % 3 * mw;
 		while (particles[index].weight < beta) {
@@ -148,7 +167,7 @@ void ParticleFilter::resample() {
 	}
 	
 	
-	//Particle = new_particles;
+	particles = new_particles;
 	
 	
 }
