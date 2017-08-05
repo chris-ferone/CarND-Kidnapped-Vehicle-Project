@@ -16,6 +16,7 @@
 #include <iterator>
 
 #include "particle_filter.h"
+#include <cmath> 
 
 using namespace std;
 
@@ -68,8 +69,29 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	//   observed measurement to this particular landmark.
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
 	//   implement this method and use it as a helper during the updateWeights phase.
-	for (int i=0; i < size(num_particles); i++){
-		dist(predicted[i].x, predicted[i].y, observations[i].x, observations[i].y)
+	
+	//the first parameter has a rather misleading name: it is just the list of landmarks as provided by the map
+	
+	
+	// there are predicted measurements, observed measurements, and landmarks what do I assign to what?
+	// dataAssociation is the process of associating sensor measurements with map landmarks
+	double min_distance = 10000;
+	
+	for (int i=0; i < size(predicted); i++){ //loop through each observation, 
+		for (int j=0; j < size(predicted); j++){ // for each observation, find the closest landmark; so loop through all landmarks, 
+			
+			// convert sensor observations to map coordinates
+			observations.x = Particle[i].x*cos(Particle[i].theta) - Particle[i].y*sin(Particle[i].theta) + observation.x;
+			observations.y = Particle[i].x*sin(Particle[i].theta) - Particle[i].y*cos(Particle[i].theta) + observation.y;
+			
+			distance = dist(predicted[i].x, predicted[i].y, observations[j].x, observations[j].y);  
+			if (distance < min_distance) {
+				min_distance = distance;
+				Particle[i].associations = Predicted[j].id_i;
+				Particle[i].sense_x = observations.x; //landmark
+				Particle[i].sense_y = observations.y;
+			}
+		
 	}
 }
 
@@ -85,12 +107,35 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   and the following is a good resource for the actual equation to implement (look at equation 
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
+	
+
+	
+	
+	ParticleFilter::dataAssociation(map_landmarks, observations);
+	
+	for (int i=0; i < size(num_particles); i++) { //loop through all the particles
+		
+		for (int j=0; j < size(Particle[i].associations); j++) { //each particle is associated with a number of observations, so loop through all observations
+		// these associated observations are converted to map coordinates (e.g. GPS)
+			Particle[i].Weight = 1/(2*M_PI*sens_covar[0]*sens_covar[1])*exp(-(pow((Particle[i].sense_x - map_landmarks[Particle[i].id_i].x_f ),2)/(2*pow(sens_covar[0],2)) + pow(( Particle[i].sense_y - map_landmarks[Particle[i].id_i].y_f ),2 )/(2*pow(sens_covar[1],2))   ));
+		}
+		
+		
+	}
+        
+	
+	
+	
+
 }
 
 void ParticleFilter::resample() {
 	// TODO: Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+	
+	
+	
 
 }
 
