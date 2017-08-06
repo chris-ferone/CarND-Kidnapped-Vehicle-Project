@@ -15,6 +15,7 @@
 #include <string>
 #include <iterator>
 #include <typeinfo>
+#include <iomanip> 
 
 #include "particle_filter.h"
 #include <cmath> 
@@ -29,22 +30,29 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		
 	// This line create normal (Gaussian) distributions for x, y, and psi
 	
-	num_particles = 20;
+	num_particles = 2;
 	
 	normal_distribution<double> dist_x(x, std[0]);
 	normal_distribution<double> dist_y(y, std[1]);
 	normal_distribution<double> dist_psi(theta, std[2]);
 	default_random_engine gen;
 	
+	cout << "gps x" << x << endl;
+	cout << "gps y" << y << endl;
+	cout << "gps theta" << theta << endl;
+	
 	//cout << "before  initialization for loop" << endl;
 	
 	for (int i=0; i < num_particles; i++){
 		particles.push_back(Particle());
 		particles[i].id = i;
-		particles[i].weight = 1;
+		particles[i].weight = 1.0;
 		particles[i].x = dist_x(gen);
+		cout << "x initial: " << particles[i].x << endl;
 		particles[i].y = dist_y(gen);
+		cout << "y initial: " << particles[i].y << endl;
 		particles[i].theta = dist_psi(gen);
+		cout << "theta initial: " << particles[i].theta << endl;
 	}
 	
 	//cout << "after initialization for loop" << endl;
@@ -78,21 +86,22 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	
 	//the first parameter has a rather misleading name: it is just the list of landmarks as provided by the map
 	
-	double min_distance = 10000;
+/* 	double min_distance = 10000;
 	
 	for (int i=0; i < num_particles; i++){ //loop through each particle, 
 		for (int j=0; j < observations.size(); j++){ // for each particle, loop through each observations, and convert observation to map coordinates 
 			
 			// convert sensor observations to map coordinates
 			//cout << "convert sensor observations to map coordinates" << endl;
-			observations[j].x = particles[i].x*cos(particles[i].theta) - particles[i].y*sin(particles[i].theta) + observations[j].x;
-			observations[j].y = particles[i].x*sin(particles[i].theta) - particles[i].y*cos(particles[i].theta) + observations[j].y;
+			LandmarkObs observ;
+			observ.x = particles[i].x*cos(particles[i].theta) - particles[i].y*sin(particles[i].theta) + observations[j].x;
+			observ.y = particles[i].x*sin(particles[i].theta) - particles[i].y*cos(particles[i].theta) + observations[j].y;
 			//cout << "convert sensor observations to map coordinates end" << endl;
 			
 			for (int k=0; k < predicted.size(); k++){ // loop through each landmark, and calculate distance to current observation in map coordinates
 				
 				//Calculate distance between landmark and observatin (in map coordinates)
-				double distance = dist(predicted[k].x, predicted[k].y, observations[j].x, observations[j].y);  
+				double distance = dist(predicted[k+1].x, predicted[k+1].y, observ.x, observ.y);  
 								
 				if (distance < min_distance) {
 					min_distance = distance;
@@ -112,11 +121,11 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 					//cout << "past2" << endl;
 					particles[i].sense_y = obsyy;
 					//cout << "past3" << endl;
-					particles[i].id = predicted[k].id; 
+					particles[i].id = predicted[k+1].id; 
 				}
 			}
 		}
-	}
+	} */
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
@@ -134,27 +143,97 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	
 	//convert ‘std::vector<Map::single_landmark_s>’ to ‘std::vector<LandmarkObs>’
 	
-	std::vector<LandmarkObs> landmarkData;
-	//cout << "data type conversion begin" << endl;
+/* 	std::vector<LandmarkObs> landmarkData;
+	cout << "data type conversion begin" << endl;
 	for (int i=0; i < map_landmarks.landmark_list.size(); i++){
 			landmarkData.push_back(LandmarkObs());
 			landmarkData[i].id = map_landmarks.landmark_list[i].id_i;
 			landmarkData[i].x = map_landmarks.landmark_list[i].x_f;
 			landmarkData[i].y = map_landmarks.landmark_list[i].y_f;
 	}
-	//cout << "data type conversion end, data association begin" << endl;
+	cout << "data type conversion end, data association begin" << endl;
 	
-	ParticleFilter::dataAssociation(landmarkData, observations);
+	ParticleFilter::dataAssociation(landmarkData, observations); */
+	
+	
+	
+		
+	
+	for (int i=0; i < num_particles; i++){ //loop through each particle, 
+	
+		int num_observations = observations.size();
+		vector<int> assoc(num_observations); //Each particle has a some number of landmarks associated with (depends on what was in sensor's field of view)
+		vector<double> obsxx(num_observations);
+		vector<double> obsyy(num_observations);
+		
+		for (int j=0; j < observations.size(); j++){ // for each particle, loop through each observations, and convert observation to map coordinates 
+			
+			//cout << "observation x: " << observations[j].x << " || observation y: " << observations[j].y << endl;
+			//cout << "particle x: " << particles[i].x << " || particle y: " << particles[i].y <<  " || particle theta: "   << particles[i].theta << endl;
+			
+			// convert sensor observations to map coordinates
+			//cout << "convert sensor observations to map coordinates" << endl;
+			LandmarkObs observMAP;
+			observMAP.x = 0;
+			observMAP.y = 0;
+			observMAP.x = particles[i].x*cos(particles[i].theta) - particles[i].y*sin(particles[i].theta) + observations[j].x;
+			observMAP.y = particles[i].x*sin(particles[i].theta) + particles[i].y*cos(particles[i].theta) + observations[j].y;
+			//cout << "convert sensor observations to map coordinates end" << endl;
+			obsxx.push_back(observMAP.x);
+			obsyy.push_back(observMAP.y);
+			//cout << "observation x MAP: " << observMAP.x << " || observation y MAP: " << observMAP.y << endl;
+			
+			int min_distance_k;
+			double min_distance = 10000;
+			for (int k=0; k < map_landmarks.landmark_list.size(); k++){ // loop through each landmark, and calculate distance to current observation in map coordinates
+				
+				//Calculate distance between landmark and observatin (in map coordinates)
+				double distance = dist(map_landmarks.landmark_list[k].x_f, map_landmarks.landmark_list[k].y_f, observMAP.x, observMAP.y);  
+				//cout << "distance " << distance <<endl;			
+				if (distance < min_distance) {
+					min_distance = distance;
+					min_distance_k = k;
+
+				}
+			}
+			assoc.push_back(map_landmarks.landmark_list[min_distance_k].id_i);
+			//cout << "minimum distance " << min_distance <<endl;	
+		}
+		particles[i].sense_x = obsxx;
+		particles[i].sense_y = obsyy;
+		particles[i].associations = assoc;
+	}
+	
+	
 	
 	for (int i=0; i < num_particles; i++) { //loop through all the particles
 		
-		for (int j=0; j < particles[i].associations.size(); j++) { //each particle is associated with a number of observations, so loop through all observations
+		//for (int j=0; j < particles[i].associations.size(); j++) { //each particle is associated with a number of observations, so loop through all observations
 		// these associated observations are converted to map coordinates (e.g. GPS)
-			particles[i].weight = 1 / (2*M_PI*std_landmark[0]*std_landmark[1]) * exp(-(pow((particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].id].x_f ),2)/(2*pow(std_landmark[0],2)) + pow(( particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].id].y_f ),2 )/(2*pow(std_landmark[1],2))   ));
+/* 			cout << "sense_x: " << fixed << setprecision(12) << particles[i].sense_x[0] << endl;
+			cout << "land_x: " << fixed << setprecision(12) << map_landmarks.landmark_list[particles[i].id+1].x_f << endl;
+			cout << "sense_y: " << fixed << setprecision(12) << particles[i].sense_y[0] << endl;
+			cout << "land_y: " << fixed << setprecision(12) << map_landmarks.landmark_list[particles[i].id+1].y_f << endl; */
+			
+				
+			//double bb = pow((particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].id+1].x_f ),2)/(2*pow(std_landmark[0],2));
+			//cout << "bb: " << fixed << setprecision(12) << bb << endl;
+			//double cc = pow((particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].id+1].y_f ),2)/(2*pow(std_landmark[1],2));
+			//cout << "cc: " << fixed << setprecision(12) << cc << endl;
+			//double aa = exp(-( bb + cc));
+			//cout << "aa: " << fixed << setprecision(12) << aa << endl;
+			for (int j=0; j < observations.size(); j++){
+			
+			particles[i].weight += 1.0 / (2.0*M_PI*std_landmark[0]*std_landmark[1]) * exp(-( 
+				pow((particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].associations[j]].x_f ),2)/(2.0*pow(std_landmark[0],2)) + 
+				pow((particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]].y_f ),2)/(2.0*pow(std_landmark[1],2)) ));
+			}
+			
+			//cout << "updated particle weights: " << fixed << setprecision(12) << particles[i].weight << endl;
 		}
+			
 		
-		
-	}
+	
         
 	
 	
@@ -168,7 +247,7 @@ void ParticleFilter::resample() {
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 	
 	int N = num_particles;
-	vector<Particle> new_particles;
+	vector<Particle> new_particles(N);
 	int index = rand() % N;
 	double beta = 0.0;
 	
@@ -182,27 +261,29 @@ void ParticleFilter::resample() {
 	    });
 	
 	double mw = particles[std::distance(begin(particles), ParticleIterator)].weight;
-	//cout << "here!" << endl;
+	cout << "mw " << mw << endl;
 	//double mw = particles[3].weight ;
 	for (int i=0; i < N; i++){
 		//cout << "1" << endl;
 		beta = beta + rand() % 3 * mw;
-		//cout << "2" << endl;
+		cout << "beta2: " << beta << endl;
+		cout << "weight: " << particles[index].weight << endl;
 		while (particles[index].weight < beta) {
-			//cout << "3" << endl;
+			cout << "beta3: " << beta << endl;
 			beta = beta - particles[index].weight;
-			//cout << "4" << endl;
+			cout << "beta4: " << beta << endl;
 			index = index + 1;
-			//cout << "5" << endl;
-		new_particles.push_back(Particle());
-		new_particles[i] = particles[index];
-		//cout << "6" << endl;
+			cout << "5" << endl;
 		}
+		//new_particles.push_back(Particle());
+		new_particles[i] = particles[index];
+		cout << "new particle added: " << i << endl;
+		
 	}
 	
 	
 	particles = new_particles;
-	//cout << "7" << endl;
+	cout << "7" << endl;
 	
 }
 
