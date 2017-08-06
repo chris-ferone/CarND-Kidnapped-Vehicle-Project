@@ -30,7 +30,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		
 	// This line create normal (Gaussian) distributions for x, y, and psi
 	
-	num_particles = 10;
+	num_particles = 2;
 	
 	normal_distribution<double> dist_x(x, std[0]);
 	normal_distribution<double> dist_y(y, std[1]);
@@ -154,7 +154,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			obsyy[j] = observMAP.y;
 			
 			//cout << "observation x MAP: " << observMAP.x << " || observation y MAP: " << observMAP.y << endl;
-			//cout << "observation x MAP: " << obsxx[j] << " || observation y MAP: " << obsyy[j] << endl;
+			
+			cout << "observation x MAP: " << obsxx[j] << " || observation y MAP: " << obsyy[j] << endl;
+			
 			int min_distance_k;
 			double min_distance = 10000;
 			for (int k=0; k < map_landmarks.landmark_list.size(); k++){ // loop through each landmark, and calculate distance to current observation in map coordinates
@@ -169,8 +171,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				}
 			}
 			assoc[j] = min_distance_k+1;
-			//cout << "minimum distance " << min_distance <<endl;	
-			//cout << "associated landmark ID " << min_distance_k<<endl;
+			cout << "minimum distance " << min_distance <<endl;	
+			cout << "associated landmark ID " << min_distance_k + 1<<endl;
 		}
 		particles[i].sense_x = obsxx;
 		particles[i].sense_y = obsyy;
@@ -196,10 +198,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			//double aa = exp(-( bb + cc));
 			//cout << "aa: " << fixed << setprecision(12) << aa << endl;
 			for (int j=0; j < observations.size(); j++){
-				  /* cout << "sensed x: " << particles[i].sense_x[j] << " actual x: " << map_landmarks.landmark_list[particles[i].associations[j]-1].x_f << endl;
+/* 				   cout << "sensed x: " << particles[i].sense_x[j] << " actual x: " << map_landmarks.landmark_list[particles[i].associations[j]-1].x_f << endl;
 				cout << "sensed y: " << particles[i].sense_y[j] << " actual y: " << map_landmarks.landmark_list[particles[i].associations[j]-1].y_f << endl;
 				cout << "x diff: " << (particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].x_f ) << endl;
-				cout << "y diff: " << (particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].y_f ) << endl; */  
+				cout << "y diff: " << (particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].y_f ) << endl;   */ 
 				particles[i].weight *= 1.0 / (2.0*M_PI*std_landmark[0]*std_landmark[1]) * exp(-( 
 					pow( (particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].x_f ) ,2) / (2.0*pow(std_landmark[0],2)) + 
 					pow( (particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].y_f ) ,2) / (2.0*pow(std_landmark[1],2)) ));
