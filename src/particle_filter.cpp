@@ -135,8 +135,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		//cout << "i: " << i <<endl;
 		for (int j=0; j < observations.size(); j++){ // for each particle, loop through each observations, and convert observation to map coordinates 
 			
-			//cout << "observation x: " << observations[j].x << " || observation y: " << observations[j].y << endl;
-			//cout << "particle x: " << particles[i].x << " || particle y: " << particles[i].y <<  " || particle theta: "   << particles[i].theta << endl;
+			cout << "observation x: " << observations[j].x << " || observation y: " << observations[j].y << endl;
+			cout << "particle x: " << particles[i].x << " || particle y: " << particles[i].y <<  " || particle theta: "   << particles[i].theta << endl;
 			
 			// convert sensor observations to map coordinates
 			//cout << "convert sensor observations to map coordinates" << endl;
@@ -145,8 +145,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			observMAP.y = 0;
 			//observMAP.x = particles[i].x*cos(particles[i].theta) - particles[i].y*sin(particles[i].theta) + observations[j].x;
 			//observMAP.y = particles[i].x*sin(particles[i].theta) + particles[i].y*cos(particles[i].theta) + observations[j].y;
-			observMAP.x = observations[j].x*cos(particles[i].theta) - observations[i].y*sin(particles[i].theta) + particles[i].x;
-			observMAP.y = observations[j].x*sin(particles[i].theta) + observations[i].y*cos(particles[i].theta) + particles[i].y;
+			observMAP.x = observations[j].x*cos(particles[i].theta) - observations[j].y*sin(particles[i].theta) + particles[i].x;
+			observMAP.y = observations[j].x*sin(particles[i].theta) + observations[j].y*cos(particles[i].theta) + particles[i].y;
 			
 			//cout << "convert sensor observations to map coordinates end" << endl;
 			
@@ -254,7 +254,7 @@ void ParticleFilter::resample() {
 			beta = beta - particles[index].weight;
 			cout << "beta4: " << beta << endl;
 			index = index + 1;
-			cout << "5" << endl;
+			//cout << "5" << endl;
 		}
 		//new_particles.push_back(Particle());
 		new_particles[i] = particles[index];
