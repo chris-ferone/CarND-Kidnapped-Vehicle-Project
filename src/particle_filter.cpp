@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <iterator>
+#include <typeinfo>
 
 #include "particle_filter.h"
 #include <cmath> 
@@ -47,7 +48,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	}
 	
 	cout << "after initialization for loop" << endl;
-	
+	cout << "particles size" << particles.size() << endl;
 	is_initialized = true;
 
 }
@@ -79,22 +80,43 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	
 	double min_distance = 10000;
 	
-	for (int i=0; i < predicted.size(); i++){ //loop through each observation, 
-		for (int j=0; j < predicted.size(); j++){ // for each observation, find the closest landmark; so loop through all landmarks, 
+	for (int i=0; i < num_particles; i++){ //loop through each particle, 
+		for (int j=0; j < observations.size(); j++){ // for each particle, loop through each observations, and convert observation to map coordinates 
 			
 			// convert sensor observations to map coordinates
+			cout << "convert sensor observations to map coordinates" << endl;
 			observations[j].x = particles[i].x*cos(particles[i].theta) - particles[i].y*sin(particles[i].theta) + observations[j].x;
 			observations[j].y = particles[i].x*sin(particles[i].theta) - particles[i].y*cos(particles[i].theta) + observations[j].y;
+			cout << "convert sensor observations to map coordinates end" << endl;
 			
-			double distance = dist(predicted[i].x, predicted[i].y, observations[j].x, observations[j].y);  
-			if (distance < min_distance) {
-				min_distance = distance;
-				particles[i].associations[0] = predicted[j].id;
-				particles[i].sense_x[0] = observations[j].x; //landmark
-				particles[i].sense_y[0] = observations[j].y;
+			for (int k=0; k < predicted.size(); k++){ // loop through each landmark, and calculate distance to current observation in map coordinates
+				
+				//Calculate distance between landmark and observatin (in map coordinates)
+				double distance = dist(predicted[k].x, predicted[k].y, observations[j].x, observations[j].y);  
+				cout << "got distance" << endl;
+				
+				if (distance < min_distance) {
+					min_distance = distance;
+					
+					cout << "before assigining new values" << endl;
+					cout << "i: " << i << " type " << typeid(i).name() << endl;
+					cout << "obsx " << typeid(observations[j].x ).name() << endl;
+					cout << "obsy " << observations[j].x << endl;
+					
+					//cout << "left side" << particles[i].associations[0] << endl;
+					
+					//particles[i].associations[0] = 1; //predicted[j].id;
+					cout << "past1" << endl;
+					vector<double> obsxx = {observations[j].x};
+					vector<double> obsyy = {observations[j].y};
+					particles[i].sense_x = obsxx; //landmark
+					cout << "past2" << endl;
+					particles[i].sense_y = obsyy;
+					cout << "past3" << endl;
+					particles[i].id = predicted[k].id; 
+				}
 			}
-		}	
-		
+		}
 	}
 }
 
