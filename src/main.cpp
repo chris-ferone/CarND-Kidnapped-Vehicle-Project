@@ -82,9 +82,9 @@ int main()
 			// Predict the vehicle's next state from previous (noiseless control) data.
 		  	double previous_velocity = std::stod(j[1]["previous_velocity"].get<std::string>());
 			double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<std::string>());
-			cout << "pf prediction begin" << endl;
+			//cout << "pf prediction begin" << endl;
 			pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
-			cout << "pf prediction end" << endl;
+			//cout << "pf prediction end" << endl;
 		  }
 
 		  // receive noisy observation data from the simulator
@@ -116,12 +116,12 @@ int main()
         	}
 
 		  // Update the weights and resample
-		  cout << "pf update weights begin" << endl;
+		 // cout << "pf update weights begin" << endl;
 		  
 		  pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
-		  cout << "pf resample begin" << endl;
+		  //cout << "pf resample begin" << endl;
 		  pf.resample();
-		  cout << "pf resample end" << endl;
+		  //cout << "pf resample end" << endl;
 		  // Calculate and output the average weighted error of the particle filter over all time steps so far.
 		  vector<Particle> particles = pf.particles;
 		  int num_particles = particles.size();
