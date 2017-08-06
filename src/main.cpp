@@ -36,7 +36,7 @@ int main()
   double sigma_pos [3] = {0.3, 0.3, 0.01}; // GPS measurement uncertainty [x [m], y [m], theta [rad]]
   double sigma_landmark [2] = {0.3, 0.3}; // Landmark measurement uncertainty [x [m], y [m]]
   
-  cout << "1" << endl;
+ // cout << "1" << endl;
 
   // Read map data
   Map map;
@@ -44,10 +44,10 @@ int main()
 	  cout << "Error: Could not open map file" << endl;
 	  return -1;
   }
-	cout << "map read" << endl;	
+	//cout << "map read" << endl;	
   // Create particle filter
   ParticleFilter pf;
-	cout << "particle filter created" << endl;
+	//cout << "particle filter created" << endl;
   h.onMessage([&pf,&map,&delta_t,&sensor_range,&sigma_pos,&sigma_landmark](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -68,7 +68,7 @@ int main()
 
 
           if (!pf.initialized()) {
-			cout << "pf initialization begin" << endl;
+			//cout << "pf initialization begin" << endl;
           	// Sense noisy position data from the simulator
 			double sense_x = std::stod(j[1]["sense_x"].get<std::string>());
 			double sense_y = std::stod(j[1]["sense_y"].get<std::string>());
@@ -121,7 +121,7 @@ int main()
 		  pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
 		  cout << "pf resample begin" << endl;
 		  pf.resample();
-
+		  cout << "pf resample end" << endl;
 		  // Calculate and output the average weighted error of the particle filter over all time steps so far.
 		  vector<Particle> particles = pf.particles;
 		  int num_particles = particles.size();

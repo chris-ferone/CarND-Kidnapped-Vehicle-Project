@@ -36,7 +36,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	normal_distribution<double> dist_psi(theta, std[2]);
 	default_random_engine gen;
 	
-	cout << "before  initialization for loop" << endl;
+	//cout << "before  initialization for loop" << endl;
 	
 	for (int i=0; i < num_particles; i++){
 		particles.push_back(Particle());
@@ -47,8 +47,8 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		particles[i].theta = dist_psi(gen);
 	}
 	
-	cout << "after initialization for loop" << endl;
-	cout << "particles size" << particles.size() << endl;
+	//cout << "after initialization for loop" << endl;
+	//cout << "particles size" << particles.size() << endl;
 	is_initialized = true;
 
 }
@@ -84,35 +84,34 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 		for (int j=0; j < observations.size(); j++){ // for each particle, loop through each observations, and convert observation to map coordinates 
 			
 			// convert sensor observations to map coordinates
-			cout << "convert sensor observations to map coordinates" << endl;
+			//cout << "convert sensor observations to map coordinates" << endl;
 			observations[j].x = particles[i].x*cos(particles[i].theta) - particles[i].y*sin(particles[i].theta) + observations[j].x;
 			observations[j].y = particles[i].x*sin(particles[i].theta) - particles[i].y*cos(particles[i].theta) + observations[j].y;
-			cout << "convert sensor observations to map coordinates end" << endl;
+			//cout << "convert sensor observations to map coordinates end" << endl;
 			
 			for (int k=0; k < predicted.size(); k++){ // loop through each landmark, and calculate distance to current observation in map coordinates
 				
 				//Calculate distance between landmark and observatin (in map coordinates)
 				double distance = dist(predicted[k].x, predicted[k].y, observations[j].x, observations[j].y);  
-				cout << "got distance" << endl;
-				
+								
 				if (distance < min_distance) {
 					min_distance = distance;
 					
-					cout << "before assigining new values" << endl;
-					cout << "i: " << i << " type " << typeid(i).name() << endl;
-					cout << "obsx " << typeid(observations[j].x ).name() << endl;
-					cout << "obsy " << observations[j].x << endl;
+					//cout << "before assigining new values" << endl;
+					//cout << "i: " << i << " type " << typeid(i).name() << endl;
+					//cout << "obsx " << typeid(observations[j].x ).name() << endl;
+					//cout << "obsy " << observations[j].x << endl;
 					
 					//cout << "left side" << particles[i].associations[0] << endl;
 					
 					//particles[i].associations[0] = 1; //predicted[j].id;
-					cout << "past1" << endl;
+					//cout << "past1" << endl;
 					vector<double> obsxx = {observations[j].x};
 					vector<double> obsyy = {observations[j].y};
 					particles[i].sense_x = obsxx; //landmark
-					cout << "past2" << endl;
+					//cout << "past2" << endl;
 					particles[i].sense_y = obsyy;
-					cout << "past3" << endl;
+					//cout << "past3" << endl;
 					particles[i].id = predicted[k].id; 
 				}
 			}
@@ -136,14 +135,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//convert ‘std::vector<Map::single_landmark_s>’ to ‘std::vector<LandmarkObs>’
 	
 	std::vector<LandmarkObs> landmarkData;
-	cout << "data type conversion begin" << endl;
+	//cout << "data type conversion begin" << endl;
 	for (int i=0; i < map_landmarks.landmark_list.size(); i++){
 			landmarkData.push_back(LandmarkObs());
 			landmarkData[i].id = map_landmarks.landmark_list[i].id_i;
 			landmarkData[i].x = map_landmarks.landmark_list[i].x_f;
 			landmarkData[i].y = map_landmarks.landmark_list[i].y_f;
 	}
-	cout << "data type conversion end, data association begin" << endl;
+	//cout << "data type conversion end, data association begin" << endl;
 	
 	ParticleFilter::dataAssociation(landmarkData, observations);
 	
@@ -169,13 +168,13 @@ void ParticleFilter::resample() {
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 	
 	int N = num_particles;
-	std::vector<Particle> new_particles;
+	vector<Particle> new_particles;
 	int index = rand() % N;
 	double beta = 0.0;
 	
 	// find largest weight
 	decltype(particles)::iterator ParticleIterator;
-
+	
 	ParticleIterator = max_element(begin(particles), end(particles),
 		[] (Particle const& p1, Particle  const& p2)
 	    {
@@ -183,20 +182,27 @@ void ParticleFilter::resample() {
 	    });
 	
 	double mw = particles[std::distance(begin(particles), ParticleIterator)].weight;
-	
+	//cout << "here!" << endl;
 	//double mw = particles[3].weight ;
 	for (int i=0; i < N; i++){
+		//cout << "1" << endl;
 		beta = beta + rand() % 3 * mw;
+		//cout << "2" << endl;
 		while (particles[index].weight < beta) {
+			//cout << "3" << endl;
 			beta = beta - particles[index].weight;
+			//cout << "4" << endl;
 			index = index + 1;
+			//cout << "5" << endl;
+		new_particles.push_back(Particle());
 		new_particles[i] = particles[index];
+		//cout << "6" << endl;
 		}
 	}
 	
 	
 	particles = new_particles;
-	
+	//cout << "7" << endl;
 	
 }
 
