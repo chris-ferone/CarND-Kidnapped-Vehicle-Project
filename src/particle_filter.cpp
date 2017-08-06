@@ -58,6 +58,8 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//cout << "after initialization for loop" << endl;
 	//cout << "particles size" << particles.size() << endl;
 	is_initialized = true;
+	
+
 
 }
 
@@ -155,7 +157,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	
 	ParticleFilter::dataAssociation(landmarkData, observations); */
 	
+	cout << "map index 0 x" << map_landmarks.landmark_list[0].x_f << endl;
+	cout << "map index 0 x" << map_landmarks.landmark_list[0].y_f << endl;
+	cout << "map index 0 x" << map_landmarks.landmark_list[0].id_i << endl;
 	
+	cout << "map index 1 x" << map_landmarks.landmark_list[1].x_f << endl;
+	cout << "map index 1 x" << map_landmarks.landmark_list[1].y_f << endl;
+	cout << "map index 1 x" << map_landmarks.landmark_list[1].id_i << endl;
 	
 		
 	
@@ -165,7 +173,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		vector<int> assoc(num_observations); //Each particle has a some number of landmarks associated with (depends on what was in sensor's field of view)
 		vector<double> obsxx(num_observations);
 		vector<double> obsyy(num_observations);
-		
+		cout << "i: " << i <<endl;
 		for (int j=0; j < observations.size(); j++){ // for each particle, loop through each observations, and convert observation to map coordinates 
 			
 			//cout << "observation x: " << observations[j].x << " || observation y: " << observations[j].y << endl;
@@ -197,7 +205,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				}
 			}
 			assoc.push_back(map_landmarks.landmark_list[min_distance_k].id_i);
-			//cout << "minimum distance " << min_distance <<endl;	
+			cout << "minimum distance " << min_distance <<endl;	
+			cout << "associated landmark ID " << map_landmarks.landmark_list[min_distance_k].id_i<<endl;
 		}
 		particles[i].sense_x = obsxx;
 		particles[i].sense_y = obsyy;
@@ -225,8 +234,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			for (int j=0; j < observations.size(); j++){
 			
 			particles[i].weight += 1.0 / (2.0*M_PI*std_landmark[0]*std_landmark[1]) * exp(-( 
-				pow((particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].associations[j]].x_f ),2)/(2.0*pow(std_landmark[0],2)) + 
-				pow((particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]].y_f ),2)/(2.0*pow(std_landmark[1],2)) ));
+				pow((particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].x_f ),2)/(2.0*pow(std_landmark[0],2)) + 
+				pow((particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].y_f ),2)/(2.0*pow(std_landmark[1],2)) ));
 			}
 			
 			//cout << "updated particle weights: " << fixed << setprecision(12) << particles[i].weight << endl;
