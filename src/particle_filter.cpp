@@ -30,7 +30,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		
 	// This line create normal (Gaussian) distributions for x, y, and psi
 	
-	num_particles = 2;
+	num_particles = 10;
 	
 	normal_distribution<double> dist_x(x, std[0]);
 	normal_distribution<double> dist_y(y, std[1]);
@@ -73,17 +73,24 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	default_random_engine gen;
 	
 	for (int i=0; i < num_particles; i++){
-		cout << "before prediciton: " << particles[i].x << " " << particles[i].y << " " << particles[i].theta << " " << endl;
-		particles[i].x += velocity/yaw_rate*(sin(particles[i].theta + yaw_rate*delta_t)-sin(particles[i].theta)); 
-		particles[i].y += velocity/yaw_rate*(cos(particles[i].theta) - cos(particles[i].theta + yaw_rate*delta_t));
-		particles[i].theta += yaw_rate*delta_t;
-		normal_distribution<double> dist_x(particles[i].x , std_pos[0]);
-		normal_distribution<double> dist_y(particles[i].y , std_pos[1]);
-		normal_distribution<double> dist_psi(particles[i].theta, std_pos[2]);
-		particles[i].x = dist_x(gen);
-		particles[i].y = dist_y(gen);
-		particles[i].theta = dist_psi(gen);
-		cout << "after prediciton: " << particles[i].x << " " << particles[i].y << " " << particles[i].theta << " " << endl;
+		//cout << "before prediciton: " << particles[i].x << " " << particles[i].y << " " << particles[i].theta << " " << endl;
+		// Calculate the mean
+		if(abs(yaw_rate)<0.0001) {
+ 			particles[i].x += velocity * delta_t * cos(particles[i].theta);
+			particles[i].y += velocity * delta_t * sin(particles[i].theta); }
+		else {
+			particles[i].x += velocity/yaw_rate*(sin(particles[i].theta + yaw_rate*delta_t)-sin(particles[i].theta)); 
+			particles[i].y += velocity/yaw_rate*(cos(particles[i].theta) - cos(particles[i].theta + yaw_rate*delta_t));
+			particles[i].theta += yaw_rate*delta_t;}
+		//create a normal distribution to represent 0 mean noise with standard deviation sigma
+		normal_distribution<double> dist_x(0 , std_pos[0]);
+		normal_distribution<double> dist_y(0 , std_pos[1]);
+		normal_distribution<double> dist_psi(0 , std_pos[2]);
+		//sample from normal distribution and add to mean
+		particles[i].x += dist_x(gen);
+		particles[i].y += dist_y(gen);
+		particles[i].theta += dist_psi(gen);
+		//cout << "after prediciton: " << particles[i].x << " " << particles[i].y << " " << particles[i].theta << " " << endl;
 	}
 }
 
@@ -186,7 +193,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		particles[i].associations = assoc;
 	}
 	
-	
+	weights.clear();
 	
 	for (int i=0; i < num_particles; i++) { //loop through all the particles
 		particles[i].weight = 1.0;
@@ -273,13 +280,14 @@ void ParticleFilter::resample() {
 	//cout << "particles size" << particles.size() << " num_particles " << num_particles << endl;
 	default_random_engine generator;
 	
-	discrete_distribution<> distribution (0, num_particles-1);
-
+	discrete_distribution<> dist (weights.begin(), weights.end());
+	
+	
 	for (int i = 0; i < num_particles; i++)
 	{
-		int idx = distribution(generator);
+		int idx = dist(generator);
 		new_particles[i] = particles[idx];
-		//cout <<"i: " << i << endl;
+		cout <<"idx: " << idx << endl;
 	}
 	
 	
