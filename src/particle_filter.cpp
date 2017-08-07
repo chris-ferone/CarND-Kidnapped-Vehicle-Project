@@ -74,9 +74,11 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	default_random_engine gen;
 	
 	for (int i=0; i < num_particles; i++){
+		cout << "before prediciton: " << particles[i].x << " " << particles[i].y << " " << particles[i].theta << " " << endl;
 		particles[i].x += dist_v(gen)/dist_yr(gen)*(sin(particles[i].theta + dist_yr(gen)*delta_t)-sin(particles[i].theta));
 		particles[i].y += dist_v(gen)/dist_yr(gen)*(cos(particles[i].theta) - cos(particles[i].theta + dist_yr(gen)*delta_t));
 		particles[i].theta += dist_yr(gen)*delta_t;
+		cout << "after prediciton: " << particles[i].x << " " << particles[i].y << " " << particles[i].theta << " " << endl;
 	}
 }
 
@@ -171,7 +173,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				}
 			}
 			assoc[j] = min_distance_k+1;
-			cout << "minimum distance " << min_distance <<endl;	
+			//cout << "minimum distance " << min_distance <<endl;	
 			//cout << "associated landmark ID " << min_distance_k + 1<<endl;
 		}
 		particles[i].sense_x = obsxx;
@@ -182,7 +184,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	
 	
 	for (int i=0; i < num_particles; i++) { //loop through all the particles
-		
+		particles[i].weight = 1.0;
 		//for (int j=0; j < particles[i].associations.size(); j++) { //each particle is associated with a number of observations, so loop through all observations
 		// these associated observations are converted to map coordinates (e.g. GPS)
 /* 			cout << "sense_x: " << fixed << setprecision(12) << particles[i].sense_x[0] << endl;
@@ -200,15 +202,15 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			for (int j=0; j < observations.size(); j++){
  				 //  cout << "sensed x: " << particles[i].sense_x[j] << " actual x: " << map_landmarks.landmark_list[particles[i].associations[j]-1].x_f << endl;
 				//cout << "sensed y: " << particles[i].sense_y[j] << " actual y: " << map_landmarks.landmark_list[particles[i].associations[j]-1].y_f << endl;
-				//cout << "x diff: " << (particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].x_f ) << endl;
-				//cout << "y diff: " << (particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].y_f ) << endl;    
+				//cout << "x diff: " << (particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].x_f ) << 
+				//"y diff: " << (particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].y_f ) << endl;    
 				particles[i].weight *= 1.0 / (2.0*M_PI*std_landmark[0]*std_landmark[1]) * exp(-( 
 					pow( (particles[i].sense_x[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].x_f ) ,2) / (2.0*pow(std_landmark[0],2)) + 
 					pow( (particles[i].sense_y[j] - map_landmarks.landmark_list[particles[i].associations[j]-1].y_f ) ,2) / (2.0*pow(std_landmark[1],2)) ));
 				//cout << "pre particle weights: " << fixed << setprecision(20) << particles[i].weight << endl;
 			}
 			
-			cout << "updated particle weights: " << fixed << setprecision(20) << particles[i].weight << endl;
+			//cout << "updated particle weights: " << fixed << setprecision(20) << particles[i].weight << endl;
 			weights.push_back(particles[i].weight);
 		}
 			
@@ -263,21 +265,25 @@ void ParticleFilter::resample() {
 		cout << "new particle added: " << i << endl;
 		
 	} */
-	
+	//cout << "particles size" << particles.size() << " num_particles " << num_particles << endl;
 	default_random_engine generator;
 	
-	discrete_distribution<> distribution (weights.begin(), weights.end());
+	discrete_distribution<> distribution (0, num_particles-1);
 
-	for (int i = 0; i < num_particles; ++i)
+	for (int i = 0; i < num_particles; i++)
 	{
 		int idx = distribution(generator);
-		new_particles.push_back(particles[idx]);
+		new_particles[i] = particles[idx];
+		//cout <<"i: " << i << endl;
 	}
 	
 	
 	particles = new_particles;
-	cout << "7" << endl;
-	
+	//cout << "7" << endl;
+	for (int i = 0; i < particles.size(); i++)
+	{
+		cout <<"i: " << i << "   x final: " << particles[i].x << endl;
+	}
 }
 
 Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x, std::vector<double> sense_y)
