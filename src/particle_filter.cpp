@@ -69,15 +69,20 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 	
-	normal_distribution<double> dist_v(velocity, std_pos[0]);
-	normal_distribution<double> dist_yr(yaw_rate, std_pos[1]);
+	
 	default_random_engine gen;
 	
 	for (int i=0; i < num_particles; i++){
 		cout << "before prediciton: " << particles[i].x << " " << particles[i].y << " " << particles[i].theta << " " << endl;
-		particles[i].x += dist_v(gen)/dist_yr(gen)*(sin(particles[i].theta + dist_yr(gen)*delta_t)-sin(particles[i].theta));
-		particles[i].y += dist_v(gen)/dist_yr(gen)*(cos(particles[i].theta) - cos(particles[i].theta + dist_yr(gen)*delta_t));
-		particles[i].theta += dist_yr(gen)*delta_t;
+		particles[i].x += velocity/yaw_rate*(sin(particles[i].theta + yaw_rate*delta_t)-sin(particles[i].theta)); 
+		particles[i].y += velocity/yaw_rate*(cos(particles[i].theta) - cos(particles[i].theta + yaw_rate*delta_t));
+		particles[i].theta += yaw_rate*delta_t;
+		normal_distribution<double> dist_x(particles[i].x , std_pos[0]);
+		normal_distribution<double> dist_y(particles[i].y , std_pos[1]);
+		normal_distribution<double> dist_psi(particles[i].theta, std_pos[2]);
+		particles[i].x = dist_x(gen);
+		particles[i].y = dist_y(gen);
+		particles[i].theta = dist_psi(gen);
 		cout << "after prediciton: " << particles[i].x << " " << particles[i].y << " " << particles[i].theta << " " << endl;
 	}
 }
@@ -280,10 +285,10 @@ void ParticleFilter::resample() {
 	
 	particles = new_particles;
 	//cout << "7" << endl;
-	for (int i = 0; i < particles.size(); i++)
+	/* for (int i = 0; i < particles.size(); i++)
 	{
 		cout <<"i: " << i << "   x final: " << particles[i].x << endl;
-	}
+	} */
 }
 
 Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x, std::vector<double> sense_y)
